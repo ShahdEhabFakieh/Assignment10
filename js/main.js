@@ -32,6 +32,10 @@ function getFromLocal() {
     return (accounts == null) ? [] : accounts;
 }
 
+function setCurrentAccount(account) {
+    localStorage.setItem("CurrentAccount", JSON.stringify(account));
+}
+
 /******  DOMContentLoaded ******/
 document.addEventListener("DOMContentLoaded", () => {
     // Login Form
@@ -158,7 +162,9 @@ function onLoginSubmit() {
     }
 
     // Navigate to HomePage
-    setFormMessage(loginForm, "success", "Welcome, " + account.name)
+    
+    setCurrentAccount(account);
+    window.location.href = "home.html";
 }
 
 function validateLoginFormValues(password, email) {
