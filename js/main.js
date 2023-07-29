@@ -1,3 +1,9 @@
+/****** Global Vars ******/
+var loginForm = document.querySelector("#login");
+var createAccountForm = document.querySelector("#createAccount");
+
+var registeredAccounts = getFromLocal();
+
 /******  Form success and error messages ******/
 function setFormMessage(formElement, type, message) {
     const messageElement = formElement.querySelector(".form__message");
@@ -16,13 +22,20 @@ function clearInputError(inputElement) {
     inputElement.parentElement.querySelector(".form__input-error-message").textContent = "";
 }
 
+/****** Local Storage ******/
+
+function addToLocal() {
+    localStorage.setItem("Accounts", JSON.stringify(registeredAccounts));
+}
+function getFromLocal() {
+    var accounts = JSON.parse(localStorage.getItem("Accounts"));
+    return (accounts == null) ? [] : accounts;
+}
+
 /******  DOMContentLoaded ******/
 document.addEventListener("DOMContentLoaded", () => {
-    var loginForm = document.querySelector("#login");
-    var createAccountForm = document.querySelector("#createAccount");
-
     // Login Form
-    loginForm.addEventListener("https/kajsakj", e => {
+    loginForm.addEventListener("submit", e => {
         e.preventDefault();
         onLoginSubmit()
     });
@@ -38,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         onRegisterSubmit();
     });
+
     document.querySelector("#linkLogin").addEventListener("click", e => {
         e.preventDefault();
         loginForm.classList.remove("form--hidden");
@@ -47,8 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // All Fields
     document.querySelectorAll(".form__input").forEach(inputElement => {
         inputElement.addEventListener("blur", e => {
-            if (e.target.id === "signupUsername" && e.target.value.length > 0 && e.target.value.length < 10) {
-                setInputError(inputElement, "Username must be at least 10 characters in length");
+            if (e.target.id === "signupUsername" && e.target.value.length > 0 && e.target.value.length < 6) {
+                setInputError(inputElement, "Username must be at least 6 characters in length");
             }
         });
 
@@ -94,15 +108,33 @@ function onRegisterSubmit() {
 }
 
 function validateRegistrationFormValues(userName, password, email) {
+    // Check if either one of the values is empty
+    if (!userName || !password || !email) {
+        setFormMessage(createAccountForm, "error", "All inputs are required");
+        return false;
+    }
+    // Check if email is valid
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        setInputError(document.querySelector("#signupEmail"), "Invalid Email");
+        return false;
+    }
+
     return true;
 }
 
-function isEmailAlreadyExisting() {
+function isEmailAlreadyExisting(email) {
+    for (i = 0; i < registeredAccounts.length; i++) {
+        var acc = registeredAccounts[i];
+        if (acc.email === email)
+            return true;
+    }
     return false;
 }
 
 function addAccount(accountInfo) {
-
+    registeredAccounts.push(accountInfo);
+    addToLocal();
 }
 
 /******  Login Logic ******/
@@ -126,14 +158,29 @@ function onLoginSubmit() {
     }
 
     // Navigate to HomePage
-    console.log(account.name + " ( " + account.email + ", " + account.password + " )")
+    setFormMessage(loginForm, "success", "Welcome, " + account.name)
 }
 
 function validateLoginFormValues(password, email) {
-    //setFormMessage(loginForm, "error", "Invalid username/password combination");
+    // Check if either one of the values is empty
+    if (!password || !email) {
+        setFormMessage(loginForm, "error", "All inputs are required");
+        return false;
+    }
+    // Check if email is valid
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        setInputError(document.querySelector("#loginEmail"), "Invalid Email");
+        return false;
+    }
     return true;
 }
 
 function findAccountByEmailAndPassword(email, password) {
+    for (i = 0; i < registeredAccounts.length; i++) {
+        var acc = registeredAccounts[i];
+        if (acc.email === email && acc.password === password)
+            return acc;
+    }
     return null;
 }
